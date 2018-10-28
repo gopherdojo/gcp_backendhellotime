@@ -12,14 +12,20 @@ import (
 )
 
 func main() {
+	projectID, err := GetProjectID()
+	if err != nil {
+		panic(err)
+	}
 	// Create and register a OpenCensus Stackdriver Trace exporter.
 	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		ProjectID: "metal-tile-dev1",
+		ProjectID: projectID,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 	trace.RegisterExporter(exporter)
+
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 
 	http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe(":8080", &ochttp.Handler{}))
