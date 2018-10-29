@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"contrib.go.opencensus.io/exporter/stackdriver/propagation"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/trace"
 )
@@ -25,10 +26,20 @@ func main() {
 	}
 	trace.RegisterExporter(exporter)
 
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()}) // defaultでは10,000回に1回のサンプリングになっているが、リクエストが少ないと出てこないので、とりあえず全部出す
+
+	server := &http.Server{
+		Addr: ":8080",
+		Handler: &ochttp.Handler{
+			Handler:     http.DefaultServeMux,
+			Propagation: &propagation.HTTPFormat{},
+		},
+	}
 
 	http.HandleFunc("/", handler)
-	log.Fatal(http.ListenAndServe(":8080", &ochttp.Handler{}))
+	if err := server.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
