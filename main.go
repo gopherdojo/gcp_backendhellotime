@@ -36,16 +36,12 @@ func main() {
 		},
 	}
 
-	http.HandleFunc("/", handler)
+	http.Handle("/", ochttp.WithRouteTag(func() http.Handler { return http.HandlerFunc(handler) }(), "/backendhellotime/"))
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	ctx, span := trace.StartSpan(ctx, "/backendhellotime")
-	defer span.End()
-
 	fmt.Fprintf(w, "Hello Backend %s", time.Now())
 }
