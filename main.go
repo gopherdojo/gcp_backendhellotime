@@ -31,8 +31,9 @@ func main() {
 	server := &http.Server{
 		Addr: ":8080",
 		Handler: &ochttp.Handler{
-			Handler:     http.DefaultServeMux,
-			Propagation: &propagation.HTTPFormat{},
+			Handler:        http.DefaultServeMux,
+			Propagation:    &propagation.HTTPFormat{},
+			FormatSpanName: formatSpanName,
 		},
 	}
 
@@ -44,4 +45,8 @@ func main() {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello Backend %s", time.Now())
+}
+
+func formatSpanName(r *http.Request) string {
+	return fmt.Sprintf("/backendhellotime%s", r.URL.Path)
 }
